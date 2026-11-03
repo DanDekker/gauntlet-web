@@ -281,7 +281,24 @@ The audit parses the supplied HTML with [parse5](https://parse5.js.org/functions
 
 ### Local data and recovery
 
-The server stores tasks, accounts, and OAuth clients in `data/`, which is ignored by Git, and listens on `127.0.0.1` by default. Set `PORT` to change the HTTP port, `GUANTLET_WEB_DATA_DIR` to move the data directory, or `GUANTLET_WEB_HOST` to choose another listening address. Individual file paths can be set with `GUANTLET_WEB_DATA`, `GUANTLET_WEB_AUTH_DATA`, and `GUANTLET_WEB_OAUTH_DATA`. The container listens on `0.0.0.0` inside the container; the example below publishes it only on the host's loopback interface.
+The server stores tasks, accounts, and OAuth clients in `data/`, which is ignored by Git, and listens on `127.0.0.1` by default.
+
+| Environment variable | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `3000` | HTTP port |
+| `GUANTLET_WEB_HOST` | `127.0.0.1` | Listening address |
+| `GUANTLET_WEB_DATA_DIR` | `data/` in the repository root | Directory for store files |
+| `GUANTLET_WEB_DATA` | `tasks.json` in the data directory | Override the task store path |
+| `GUANTLET_WEB_AUTH_DATA` | `auth.json` in the data directory | Override the account store path |
+| `GUANTLET_WEB_OAUTH_DATA` | `oauth.json` in the data directory | Override the OAuth client store path |
+
+Use the existing `GUANTLET_WEB_` spelling shown above. Individual file overrides take precedence over the data directory. For example, to run on another port with a separate data directory:
+
+```bash
+PORT=3001 GUANTLET_WEB_DATA_DIR=/tmp/gauntlet-web-demo bun run start
+```
+
+The container sets the listening address to `0.0.0.0` and the data directory to `/data`; the example below publishes it only on the host's loopback interface.
 
 Writes are serialized within each store and use a temporary file and rename; run only one server against a data directory because there is no interprocess lock. An existing empty task store remains empty on restart. If a JSON file is malformed, the server moves it to a uniquely named `.corrupt-…` file before initializing a fresh store and logs the backup path. Read errors and unsupported data formats stop startup without replacing the file; preserve the backup before repairing or restoring data.
 
